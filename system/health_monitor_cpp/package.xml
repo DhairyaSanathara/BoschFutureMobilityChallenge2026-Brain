@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>health_monitor_cpp</name>
+  <version>1.0.0</version>
+  <description>
+    Passive runtime health monitor for the BFMC autonomy stack.
+    Subscribes to key topics across drivers, perception, fusion, and TF;
+    publishes rate, latency, drop, and value statistics on
+    /system/health/status and /system/health/metrics; optionally writes a
+    YAML validation summary per launch run for race-day post-mortems.
+
+    Disabled by default; gated through the enable_runtime_validation
+    launch argument in system_bringup. Pure C++, no perception path
+    modifications, single-threaded executor.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2_msgs</depend>
+  <depend>bfmc_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

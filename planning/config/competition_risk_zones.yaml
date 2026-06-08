@@ -1,0 +1,45 @@
+# =============================================================================
+# Competition risk-zone weighting.
+# =============================================================================
+# Loaded by mission_semantics_node. Produces /planning/localization_confidence
+# (Float64) as a region-aware weighted combination — the EKF still owns
+# /vehicle/state, this is an ADVISORY confidence channel for behavior +
+# RViz colouring + later off-board logging.
+#
+# Sum of weights need not be exactly 1.0 — mission_semantics normalises.
+# The rule for the four canonical regions from the Section-5 brief is:
+#
+#   NORMAL          : 0.4 loc + 0.4 lane + 0.2 graph
+#   LOW VISIBILITY  : 0.6 graph + 0.4 loc
+#   TUNNEL          : 0.6 graph + 0.4 imu_yaw
+#   NO LANE REGION  : graph + imu_yaw (50/50)
+#
+# The other regions inherit sensible defaults; tweak per track-walk.
+# =============================================================================
+
+blend_weights:
+  normal:         { loc: 0.4, lane: 0.4, graph: 0.2, imu_yaw: 0.0 }
+  intersection:   { loc: 0.4, lane: 0.4, graph: 0.2, imu_yaw: 0.0 }
+  crosswalk:      { loc: 0.4, lane: 0.4, graph: 0.2, imu_yaw: 0.0 }
+  highway:        { loc: 0.5, lane: 0.3, graph: 0.2, imu_yaw: 0.0 }
+  highway_entry:  { loc: 0.4, lane: 0.4, graph: 0.2, imu_yaw: 0.0 }
+  highway_exit:   { loc: 0.4, lane: 0.4, graph: 0.2, imu_yaw: 0.0 }
+  roundabout:     { loc: 0.3, lane: 0.4, graph: 0.3, imu_yaw: 0.0 }
+  parking:        { loc: 0.6, lane: 0.2, graph: 0.2, imu_yaw: 0.0 }
+  low_visibility: { loc: 0.4, lane: 0.0, graph: 0.6, imu_yaw: 0.0 }
+  tunnel:         { loc: 0.0, lane: 0.0, graph: 0.6, imu_yaw: 0.4 }
+  no_lane:        { loc: 0.0, lane: 0.0, graph: 0.5, imu_yaw: 0.5 }
+
+# Risk tier groups. mission_semantics colour-codes RViz markers by these.
+risk_tiers:
+  high_risk:  ["low_visibility", "tunnel", "no_lane"]
+  caution:    ["crosswalk", "intersection", "highway_entry", "highway_exit", "roundabout"]
+  fast:       ["highway"]
+  normal:     ["normal", "parking"]
+
+# Confidence-degradation behaviour: when /fusion/imu_confidence drops below
+# loc_low_thresh, mission_semantics holds the LAST known good blended
+# confidence rather than crashing it to 0 (race-day rule: "any localization
+# issue should still keep the car running").
+loc_low_thresh: 0.20
+graceful_decay_s: 5.0

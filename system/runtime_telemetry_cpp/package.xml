@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>runtime_telemetry_cpp</name>
+  <version>0.1.0</version>
+  <description>
+    Lightweight Jetson-side runtime telemetry: CPU load, RAM pressure,
+    thermal-zone temperatures, soft brownout flag. Publishes
+    /system/runtime_health (std_msgs/String JSON) every tick.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

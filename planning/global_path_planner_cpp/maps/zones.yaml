@@ -1,0 +1,116 @@
+# =============================================================================
+# Competition_track_graph.graphml side-car
+# =============================================================================
+# The BFMC GraphML file only ships (node x, y) + (edge source/target).  This
+# file carries the semantic metadata the planner needs but the graph itself
+# does NOT provide: per-node zone types and per-edge speed limits.
+#
+# Loaded by global_path_planner_cpp on startup. Published downstream as
+# /navigation/flags (String) whenever the vehicle enters / leaves a tagged
+# zone. behavior_planner_cpp consumes /navigation/flags as part of FsmInputs
+# (parking_zone, roundabout_zone, on_highway).
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Population rules used here
+# ─────────────────────────────────────────────────────────────────────────────
+#   intersection : DERIVED — every node with graph out-degree ≥ 2 OR every
+#                  node sharing (x, y) with another node (BFMC encodes each
+#                  junction as multiple co-located turn-direction nodes).
+#                  This yielded 44 nodes; see below.
+#   roundabout / parking / trafficlight / highway_entry / highway_exit /
+#   crosswalk    : CANNOT BE INFERRED from x/y/source/target — these are
+#                  semantic / pictogram concepts. They MUST be hand-filled
+#                  from a track walk-through. Until then, the perception
+#                  layer's YOLO classes ("parking", "roundabout",
+#                  "trafficlight", "crosswalk", "highway_entry",
+#                  "highway_exit") still drive the FSM via the
+#                  DetectionTimer hysteresis path — so the autonomy is not
+#                  blind to these zones even with this file partly empty.
+#
+#   highway_edges       : hand-fill from track walk
+#   semaphores          : hand-fill — map intersection / trafficlight nodes
+#                         to BFMC V2X semaphore ids
+#   edge_speed_limits   : hand-fill — global default is the city baseline
+# =============================================================================
+
+# ---- Per-node semantic type ------------------------------------------------
+# 44 intersection nodes auto-derived from graph topology. Add other zone
+# types here as you walk the track:
+#   "<id>": parking      # spaces with the "P" pictogram
+#   "<id>": roundabout   # the circle's entry/exit nodes
+#   "<id>": trafficlight # under each light pole
+#   "<id>": highway_entry / highway_exit
+#   "<id>": crosswalk
+node_types:
+  # ---- auto-derived intersections (44 nodes) -------------------------------
+  "9":   intersection
+  "10":  intersection
+  "11":  intersection
+  "12":  intersection
+  "21":  intersection
+  "22":  intersection
+  "23":  intersection
+  "24":  intersection
+  "33":  intersection
+  "34":  intersection
+  "35":  intersection
+  "36":  intersection
+  "45":  intersection
+  "46":  intersection
+  "47":  intersection
+  "48":  intersection
+  "57":  intersection
+  "58":  intersection
+  "59":  intersection
+  "60":  intersection
+  "76":  intersection
+  "77":  intersection
+  "78":  intersection
+  "85":  intersection
+  "86":  intersection
+  "87":  intersection
+  "94":  intersection
+  "95":  intersection
+  "96":  intersection
+  "103": intersection
+  "104": intersection
+  "105": intersection
+  "192": intersection
+  "200": intersection
+  "207": intersection
+  "210": intersection
+  "290": intersection
+  "291": intersection
+  "333": intersection
+  "335": intersection
+  "338": intersection
+  "341": intersection
+  "401": intersection
+  "423": intersection
+  # ---- hand-fill below ------------------------------------------------------
+
+# ---- Semaphore id mapping --------------------------------------------------
+# Map each `trafficlight` node id to the V2X semaphore id broadcast on
+# UDP:5007 (see system/v2x_bridge_cpp/include/v2x_bridge_cpp/v2x_bridge_node.hpp
+# header comments for the JSON wire format).
+semaphores: {}
+  # Example after track walk:
+  # "100": "1"
+  # "101": "2"
+
+# ---- Highway edges ---------------------------------------------------------
+# Pairs (source, target) of node ids on the highway segments. When the
+# vehicle's current edge is in this set, /navigation/flags is published as
+# "highway" and the FSM cruises at highway_speed instead of city_speed.
+highway_edges: []
+  # Example:
+  # - {source: "200", target: "201"}
+
+# ---- Per-edge speed limit override ----------------------------------------
+# Travel-time cost = length / max(speed_limit, ε). Edges not listed below
+# use `default`.
+edge_speed_limits:
+  default: 0.20      # m/s — city baseline; matches FsmTuning::city_speed
+  # specific overrides:
+  # - {source: "200", target: "201", speed_limit: 0.40}   # highway
+  # - {source: "90",  target: "91",  speed_limit: 0.08}   # parking lane

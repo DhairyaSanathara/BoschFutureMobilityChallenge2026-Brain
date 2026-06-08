@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>ekf_localization</name>
+  <version>1.3.0</version>
+  <description>Lifecycle EKF node for 2D planar autonomous vehicle state estimation.</description>
+
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>bfmc_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>eigen3_cmake_module</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>object_tracker_cpp</name>
+  <version>1.0.0</version>
+  <description>
+    Multi-object tracker for the BFMC autonomy stack. Consumes 3D detections
+    from object_detection_cpp (/perception/objects) and emits temporally
+    smoothed, identity-stable tracks on /perception/tracked_objects.
+
+    Algorithm: ByteTrack adapted for 3D vehicle-frame positions —
+    per-class greedy matching with a two-stage (high-conf / low-conf) split,
+    4D constant-velocity Kalman filter per track, tentative→confirmed→lost
+    lifecycle, uint8 track-id pool. CPU-only, no GPU dependency.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>bfmc_msgs</depend>
+  <depend>eigen3_cmake_module</depend>
+  <depend>eigen</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

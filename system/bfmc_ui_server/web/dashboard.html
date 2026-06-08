@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OdyssiX — Race Day</title>
+<style>
+  :root {
+    --bg: #0c0f14;
+    --panel: #141923;
+    --panel2: #1a2030;
+    --line: #2a3245;
+    --fg: #e6ecf3;
+    --muted: #8a96ab;
+    --accent: #4cd5ff;
+    --ok: #4ad991;
+    --warn: #ffb84d;
+    --bad: #ff5572;
+    --map-fg: #4cd5ff;
+    --map-trail: #ffd54a;
+  }
+  * { box-sizing: border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 12px; padding: 12px; height: 100vh;
+  }
+  header { grid-column: 1/3; display:flex; align-items:center; gap:18px;
+    padding: 10px 16px; background: var(--panel); border:1px solid var(--line);
+    border-radius: 12px; }
+  header .title { font-size: 22px; font-weight: 600; letter-spacing:.5px; }
+  header .pill { padding: 4px 12px; border-radius: 999px; font-weight:600;
+    font-size: 13px; background:#222; }
+  header .pill.ok   { background: rgba(74,217,145,.15); color: var(--ok); }
+  header .pill.warn { background: rgba(255,184,77,.15); color: var(--warn); }
+  header .pill.bad  { background: rgba(255,85,114,.15); color: var(--bad); }
+  header .right { margin-left:auto; color: var(--muted); font-size: 13px; }
+  .panel { background: var(--panel); border:1px solid var(--line);
+    border-radius: 12px; padding: 14px; overflow: auto; }
+  .panel h3 { margin:0 0 10px 0; font-size: 14px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .map { position: relative; height: 100%; min-height: 360px; padding: 0; overflow:hidden; }
+  .map canvas { width:100%; height:100%; display:block; }
+  .gauges { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gauge { background: var(--panel2); border-radius: 10px; padding: 12px;
+    text-align: center; }
+  .gauge .v { font-size: 30px; font-weight: 700; }
+  .gauge .l { color: var(--muted); font-size: 11px; text-transform:uppercase;
+    letter-spacing:1px; margin-top:4px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kv { display:flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 10px; background: var(--panel2); border-radius: 8px; }
+  .kv .k { color: var(--muted); font-size: 12px; text-transform:uppercase;
+    letter-spacing: .8px; }
+  .kv .v { font-weight: 600; font-family: ui-monospace, Menlo, monospace;
+    font-size: 14px; }
+  .row { display: flex; gap: 10px; }
+  .row > .panel { flex:1; }
+  footer { grid-column:1/3; background: var(--panel); border:1px solid var(--line);
+    border-radius: 12px; padding: 8px 14px; display:flex; gap:18px;
+    color: var(--muted); font-size: 12px; }
+  .led { display: inline-block; width: 10px; height:10px; border-radius:50%;
+    background:#444; margin-right:6px; vertical-align: middle; }
+  .led.on  { background: var(--ok);  box-shadow: 0 0 8px var(--ok); }
+  .led.bad { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
+  .led.warn { background: var(--warn); }
+  .bar { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden;
+    margin-top: 6px; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .2s; }
+  .bar.warn > div { background: var(--warn); }
+  .bar.bad  > div { background: var(--bad); }
+</style>
+</head>
+<body>
+<div class="grid">
+  <header>
+    <div class="title">🏁 OdyssiX</div>
+    <div id="pillReady"   class="pill bad">VEHICLE NOT READY</div>
+    <div id="pillState"   class="pill warn">POWER_ON</div>
+    <div id="pillBehavior" class="pill">—</div>
+    <div id="pillRegion"  class="pill">—</div>
+    <div class="right">
+      <span class="led" id="ledRos"></span><span id="rosText">connecting…</span>
+      &nbsp;|&nbsp; <span id="clock"></span>
+    </div>
+  </header>
+
+  <section class="panel map" id="mapPanel">
+    <canvas id="mapCanvas"></canvas>
+  </section>
+
+  <section class="panel">
+    <h3>Control</h3>
+    <div class="gauges">
+      <div class="gauge"><div class="v" id="gSpeed">0.00</div><div class="l">Speed m/s</div></div>
+      <div class="gauge"><div class="v" id="gTarget">0.00</div><div class="l">Target m/s</div></div>
+      <div class="gauge"><div class="v" id="gConf">0.00</div><div class="l">Loc Conf</div></div>
+      <div class="gauge"><div class="v" id="gThrottle">0.00</div><div class="l">Throttle</div></div>
+      <div class="gauge"><div class="v" id="gBrake">0.00</div><div class="l">Brake</div></div>
+      <div class="gauge"><div class="v" id="gSteer">+0°</div><div class="l">Steering</div></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="kv"><span class="k">Throttle</span><span class="v" id="vThrottle">0.000</span></div>
+      <div class="bar"><div id="barThrottle" style="width:0%"></div></div>
+      <div class="kv" style="margin-top:8px;"><span class="k">Brake</span><span class="v" id="vBrake">0.000</span></div>
+      <div class="bar bad"><div id="barBrake" style="width:0%"></div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Mission</h3>
+    <div class="stats">
+      <div class="kv"><span class="k">Current Node</span><span class="v" id="vNode">—</span></div>
+      <div class="kv"><span class="k">Region</span>      <span class="v" id="vRegion">—</span></div>
+      <div class="kv"><span class="k">Behavior</span>    <span class="v" id="vBeh">—</span></div>
+      <div class="kv"><span class="k">System State</span><span class="v" id="vSys">—</span></div>
+      <div class="kv"><span class="k">Position</span>    <span class="v" id="vPos">—</span></div>
+      <div class="kv"><span class="k">Yaw</span>         <span class="v" id="vYaw">—</span></div>
+      <div class="kv"><span class="k">Mission Length</span><span class="v" id="vMissionN">—</span></div>
+      <div class="kv"><span class="k">Mission Goal</span>  <span class="v" id="vMissionGoal">—</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Topics</h3>
+    <div class="stats" id="topicList">
+      <div class="kv"><span class="k"><span class="led" id="ledStatus"></span>/ui/status</span><span class="v" id="hzStatus">— Hz</span></div>
+      <div class="kv"><span class="k"><span class="led" id="ledCmd"></span>/control/command</span><span class="v" id="hzCmd">— Hz</span></div>
+      <div class="kv"><span class="k"><span class="led" id="ledVeh"></span>/vehicle/state</span><span class="v" id="hzVeh">— Hz</span></div>
+      <div class="kv"><span class="k"><span class="led" id="ledPath"></span>/planning/global_path</span><span class="v" id="hzPath">— msgs</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>rosbridge → <code id="wsUrl"></code></span>
+    <span style="margin-left:auto;">React UI:
+      <a href="/" style="color:var(--accent)">/</a> &nbsp;
+      <a href="/preview.html" style="color:var(--accent)">/preview.html</a>
+    </span>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// rosbridge JSON protocol client (raw, no roslibjs dependency)
+// ============================================================
+const wsUrl = "ws://" + location.hostname + ":9090";
+document.getElementById('wsUrl').textContent = wsUrl;
+let ws = null;
+let rosUp = false;
+const subs = []; // {topic, type, cb}
+
+// hz tracker per topic
+const hz = {};
+function bump(topic) {
+  const now = Date.now() / 1000;
+  const t = hz[topic] || (hz[topic] = {n:0, t0: now, last:0});
+  t.n++; t.last = now;
+}
+setInterval(() => {
+  const now = Date.now() / 1000;
+  for (const k in hz) {
+    const t = hz[k]; const dt = now - t.t0;
+    if (dt >= 1.5) { t.rate = t.n / dt; t.n = 0; t.t0 = now; }
+    if (now - t.last > 2.0) { t.rate = 0; }
+  }
+  document.getElementById('hzStatus').textContent = fmtHz('/ui/status');
+  document.getElementById('hzCmd')   .textContent = fmtHz('/control/command');
+  document.getElementById('hzVeh')   .textContent = fmtHz('/vehicle/state');
+  setLed('ledStatus', (hz['/ui/status']||{}).rate > 0.1 ? 'on' : 'bad');
+  setLed('ledCmd',    (hz['/control/command']||{}).rate > 0.1 ? 'on' : 'bad');
+  setLed('ledVeh',    (hz['/vehicle/state']||{}).rate > 0.1 ? 'on' : 'bad');
+  setLed('ledPath',   path_count > 0 ? 'on' : 'warn');
+}, 500);
+
+function fmtHz(topic) {
+  const r = (hz[topic]||{}).rate || 0;
+  return r > 0 ? r.toFixed(1) + ' Hz' : 'silent';
+}
+function setLed(id, kind) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('on','warn','bad');
+  el.classList.add(kind);
+}
+
+function connect() {
+  document.getElementById('rosText').textContent = 'connecting…';
+  setLed('ledRos', 'warn');
+  try { ws = new WebSocket(wsUrl); } catch (e) { setTimeout(connect, 1500); return; }
+  ws.onopen = () => {
+    rosUp = true;
+    setLed('ledRos','on');
+    document.getElementById('rosText').textContent = 'rosbridge up';
+    for (const s of subs) {
+      ws.send(JSON.stringify({op:'subscribe', topic:s.topic, type:s.type}));
+    }
+  };
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.op === 'publish') {
+      bump(m.topic);
+      for (const s of subs) if (s.topic === m.topic) try { s.cb(m.msg); } catch (e) {}
+    }
+  };
+  ws.onclose = () => {
+    rosUp = false;
+    setLed('ledRos', 'bad');
+    document.getElementById('rosText').textContent = 'rosbridge down';
+    setTimeout(connect, 1500);
+  };
+  ws.onerror = () => { try { ws.close(); } catch (e) {} };
+}
+function subscribe(topic, type, cb) {
+  subs.push({topic, type, cb});
+  if (rosUp) ws.send(JSON.stringify({op:'subscribe', topic, type}));
+}
+
+// ============================================================
+// Map renderer
+// ============================================================
+const mapCanvas = document.getElementById('mapCanvas');
+const ctx = mapCanvas.getContext('2d');
+let mapPath = [];   // [{x,y}] from /planning/global_path
+let car = null;     // {x, y, yaw}
+let trail = [];     // recent car positions
+let path_count = 0;
+
+function fitDPR() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = mapCanvas.parentElement.getBoundingClientRect();
+  mapCanvas.width  = Math.round(r.width  * dpr);
+  mapCanvas.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener('resize', fitDPR);
+
+function drawMap() {
+  fitDPR();
+  const W = mapCanvas.clientWidth, H = mapCanvas.clientHeight;
+  ctx.clearRect(0,0,W,H);
+
+  // background grid
+  ctx.fillStyle = '#0a0d12';
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = '#1d2434'; ctx.lineWidth = 1;
+  for (let x=0; x<W; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=0; y<H; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  if (mapPath.length === 0 && !car) {
+    ctx.fillStyle = '#666';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('No /planning/global_path yet — start the mission_supervisor', 20, 28);
+    return;
+  }
+
+  // bounds: include path + car
+  let xs = mapPath.map(p=>p.x), ys = mapPath.map(p=>p.y);
+  if (car) { xs.push(car.x); ys.push(car.y); }
+  let xmin = Math.min(...xs), xmax = Math.max(...xs);
+  let ymin = Math.min(...ys), ymax = Math.max(...ys);
+  if (xmin === xmax) { xmin -= 1; xmax += 1; }
+  if (ymin === ymax) { ymin -= 1; ymax += 1; }
+  const margin = 30;
+  const sx = (W - margin*2) / (xmax - xmin);
+  const sy = (H - margin*2) / (ymax - ymin);
+  const s  = Math.min(sx, sy);
+  const ox = margin + (W - margin*2 - (xmax-xmin)*s) / 2;
+  const oy = margin + (H - margin*2 - (ymax-ymin)*s) / 2;
+  // BFMC convention: y points up in map frame; canvas y points down.
+  const X = x => ox + (x - xmin) * s;
+  const Y = y => H - (oy + (y - ymin) * s);
+
+  // path
+  if (mapPath.length > 1) {
+    ctx.strokeStyle = 'rgba(76,213,255,0.55)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(X(mapPath[0].x), Y(mapPath[0].y));
+    for (let i = 1; i < mapPath.length; i++) ctx.lineTo(X(mapPath[i].x), Y(mapPath[i].y));
+    ctx.stroke();
+    // node dots
+    ctx.fillStyle = 'rgba(76,213,255,0.9)';
+    for (const p of mapPath) { ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 2.5, 0, Math.PI*2); ctx.fill(); }
+    // start + goal labels
+    const a = mapPath[0], z = mapPath[mapPath.length-1];
+    ctx.fillStyle = '#4ad991';
+    ctx.beginPath(); ctx.arc(X(a.x), Y(a.y), 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ff5572';
+    ctx.beginPath(); ctx.arc(X(z.x), Y(z.y), 7, 0, Math.PI*2); ctx.fill();
+  }
+
+  // trail
+  if (trail.length > 1) {
+    ctx.strokeStyle = 'rgba(255,213,74,0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(X(trail[0].x), Y(trail[0].y));
+    for (let i = 1; i < trail.length; i++) ctx.lineTo(X(trail[i].x), Y(trail[i].y));
+    ctx.stroke();
+  }
+
+  // car
+  if (car) {
+    const cx = X(car.x), cy = Y(car.y);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-car.yaw); // canvas y-flip
+    ctx.fillStyle = '#4cd5ff';
+    ctx.strokeStyle = '#0a0d12';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-9, 8);
+    ctx.lineTo(-9, -8);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+    // crosshair
+    ctx.strokeStyle = 'rgba(76,213,255,0.4)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx-12, cy); ctx.lineTo(cx+12, cy);
+                     ctx.moveTo(cx, cy-12); ctx.lineTo(cx, cy+12); ctx.stroke();
+  }
+}
+setInterval(drawMap, 100);
+
+// ============================================================
+// Subscriptions
+// ============================================================
+function setText(id, t) { document.getElementById(id).textContent = t; }
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+subscribe('/ui/status', 'std_msgs/msg/String', m => {
+  let s; try { s = JSON.parse(m.data); } catch (e) { return; }
+  setText('gSpeed',    (s.speed||0).toFixed(2));
+  setText('gTarget',   (s.target_speed||0).toFixed(2));
+  setText('gConf',     (s.confidence||0).toFixed(2));
+  setText('gThrottle', (s.throttle||0).toFixed(2));
+  setText('gBrake',    (s.brake||0).toFixed(2));
+  setText('gSteer',    ((s.steering||0)*180/Math.PI).toFixed(0) + '°');
+  setText('vThrottle', (s.throttle||0).toFixed(3));
+  setText('vBrake',    (s.brake||0).toFixed(3));
+  document.getElementById('barThrottle').style.width = (clamp01((s.throttle||0)/0.35)*100).toFixed(0) + '%';
+  document.getElementById('barBrake').style.width    = (clamp01(s.brake||0)*100).toFixed(0) + '%';
+  setText('vNode',   s.current_node   || '—');
+  setText('vRegion', s.current_region || 'normal');
+  setText('vBeh',    s.behavior       || '—');
+  setText('vSys',    s.system_state   || 'POWER_ON');
+  setText('vYaw',    ((s.yaw||0)*180/Math.PI).toFixed(1) + '°');
+  if (s.position) setText('vPos', '(' + s.position.x.toFixed(2) + ', ' + s.position.y.toFixed(2) + ')');
+  if (s.mission_path) {
+    setText('vMissionN',   s.mission_path.count + ' nodes');
+    if (s.mission_path.last) setText('vMissionGoal',
+        '(' + s.mission_path.last.x.toFixed(1) + ', ' + s.mission_path.last.y.toFixed(1) + ')');
+  }
+  // header pills
+  const ready = !!s.vehicle_ready;
+  const pillR = document.getElementById('pillReady');
+  pillR.className = 'pill ' + (ready ? 'ok' : 'bad');
+  pillR.textContent = ready ? 'VEHICLE READY' : 'VEHICLE NOT READY';
+  document.getElementById('pillState').textContent = s.system_state || 'POWER_ON';
+  document.getElementById('pillState').className = 'pill ' +
+      (s.system_state === 'READY_TO_DRIVE' ? 'ok' :
+       /READY/.test(s.system_state) ? 'warn' : 'bad');
+  document.getElementById('pillBehavior').textContent = s.behavior || '—';
+  document.getElementById('pillRegion').textContent   = s.current_region || 'normal';
+});
+
+// Live car pose (works even before /ui/status converges).
+subscribe('/vehicle/state', 'bfmc_msgs/msg/VehicleState', m => {
+  if (!m.pose || !m.pose.position) return;
+  car = { x: m.pose.position.x, y: m.pose.position.y, yaw: m.yaw || 0 };
+  trail.push({x: car.x, y: car.y});
+  if (trail.length > 400) trail.shift();
+});
+
+subscribe('/planning/global_path', 'nav_msgs/msg/Path', m => {
+  if (!m.poses) return;
+  mapPath = m.poses.map(p => ({x: p.pose.position.x, y: p.pose.position.y}));
+  path_count = mapPath.length;
+});
+
+subscribe('/control/command', 'bfmc_msgs/msg/ControlCommand', () => {});
+
+// clock
+setInterval(() => {
+  const d = new Date();
+  document.getElementById('clock').textContent =
+      d.toTimeString().split(' ')[0];
+}, 1000);
+
+connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# =============================================================================
+# Competition speed profile per region.
+# =============================================================================
+# Loaded by mission_semantics_node. Published on /planning/current_speed_limit
+# and forwarded to the behavior planner via /navigation/flags region tag.
+# Units: m/s. behavior_planner_cpp's fsm.cpp clamps its own targets above
+# 0.05 m/s; emergency behaviors override to 0.0.
+# =============================================================================
+
+speed_profiles:
+  normal:          0.45
+  intersection:    0.25
+  highway:         0.70
+  highway_entry:   0.40
+  highway_exit:    0.20
+  parking:         0.18
+  crosswalk:       0.20
+  low_visibility:  0.25
+  tunnel:          0.25
+  roundabout:      0.25
+  no_lane:         0.20
+
+# Absolute caps (race-day envelope). mission_semantics clamps the speed
+# profile to [v_floor, v_cap] before publishing.
+v_floor: 0.05
+v_cap:   0.85
+
+default_region: "normal"

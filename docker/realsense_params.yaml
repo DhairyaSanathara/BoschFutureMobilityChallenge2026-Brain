@@ -1,0 +1,52 @@
+/**:
+  ros__parameters:
+
+    enable_color: true
+    enable_depth: true
+
+    enable_infra1: false
+    enable_infra2: false
+
+    enable_sync: false
+    align_depth.enable: false
+    enable_rgbd: false
+
+    color_info_qos: SENSOR_DATA
+    depth_info_qos: SENSOR_DATA
+
+    publish_tf: false
+    tf_publish_rate: 0.0
+
+    # ===== STREAM CONFIG =====
+    # NOTE: param names changed between realsense2_camera versions. Older
+    # builds expect `rgb_camera.color_profile`; newer ones expect
+    # `rgb_camera.profile`. We set BOTH — the version we're not using
+    # is just ignored. Also set the explicit width/height/fps params as
+    # a third fallback (some forks honour those).
+    rgb_camera.color_profile:  "1280x720x15"
+    depth_module.depth_profile: "848x480x15"
+    rgb_camera.profile:         "1280x720x15"
+    depth_module.profile:       "848x480x15"
+    color_width:   1280
+    color_height:  720
+    color_fps:     15
+    depth_width:   848
+    depth_height:  480
+    depth_fps:     15
+
+    # ===== EXPOSURE — the actual race-day fix =====
+    # On 2026-05-19 bench test the camera ran at 1.5 Hz instead of 15 Hz.
+    # USB 3.0 confirmed @ 5000M, no CPU load. Root cause: auto-exposure
+    # extended integration time to 600+ ms per frame in dim indoor
+    # lighting. Switch to manual exposure 5000 µs (5 ms) — bright enough
+    # for indoor lab, comfortably under the 67 ms budget at 15 Hz.
+    # If the track is brighter, increase exposure to 8000-10000 µs.
+    # If track is darker, raise to 30000 µs (= 33 ms max → 30 Hz limit).
+    rgb_camera.enable_auto_exposure:     false
+    rgb_camera.exposure:                 5000
+    rgb_camera.gain:                     64
+    depth_module.enable_auto_exposure:   false
+    depth_module.exposure:               5000
+    depth_module.gain:                   16
+
+    initial_reset: true

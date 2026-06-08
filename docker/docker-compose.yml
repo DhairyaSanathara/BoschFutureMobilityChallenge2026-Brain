@@ -1,0 +1,31 @@
+services:
+  drivers:
+    image: bfmc_drivers
+    build:
+      context: .
+      dockerfile: Dockerfile.drivers
+    network_mode: host
+    privileged: true
+    volumes:
+      - ~/bfmc_ws:/bfmc_ws
+      - /dev:/dev
+      - ./realsense_params.yaml:/realsense_params.yaml
+    command: |
+      bash -c "
+      source /opt/ros/humble/setup.bash
+      source /microros_ws/install/setup.bash
+      
+      echo 'Starting RealSense D435i in the background...'
+      # UNCOMMENTED: Launching the camera node and pushing it to the background using '&'
+      ros2 launch realsense2_camera rs_launch.py params_file:=/realsense_params.yaml &
+      
+      echo 'Waiting for STM32 on /dev/ttyACM0...'
+      while [ ! -e /dev/ttyACM0 ]; do 
+        echo 'STM32 not found. Please plug it in or check connections...'
+        sleep 2; 
+      done
+      
+      echo 'STM32 detected! Starting micro-ROS agent for physical hardware...'
+      # Retained your remaps so your downstream drivers still read the expected topics
+      ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyACM0 -b 460800 --ros-args --remap /microros/imu_raw:=/microros/imu_raw_hardware --remap /microros/ultrasonic_front:=/microros/ultrasonic_front_hardware
+      "

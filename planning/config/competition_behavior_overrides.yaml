@@ -1,0 +1,32 @@
+# =============================================================================
+# Competition behavior overrides — region → maneuver/speed dispatch table.
+# =============================================================================
+# Loaded by mission_semantics_node. The region-derived behavior string is
+# published on:
+#   /planning/current_behavior    (informational, RViz)
+#   /navigation/flags             (consumed by behavior_planner_cpp's FSM —
+#                                  strings "highway", "parking", "roundabout"
+#                                  drive bool flags via on_nav_flag; other
+#                                  strings flow through harmlessly)
+#
+# The 'maneuver' field is the name the FSM would adopt when entering the
+# region. The 'speed' field is the recommended target — duplicated here from
+# competition_speed_profiles.yaml so this file is the single dispatch row
+# per region (operators can hand-tune one file before the track session).
+# =============================================================================
+
+overrides:
+  normal:         { maneuver: "LANE_KEEP",          speed: 0.45, nav_flag: "" }
+  intersection:   { maneuver: "INTERSECTION",       speed: 0.25, nav_flag: "intersection" }
+  highway:        { maneuver: "LANE_KEEP",          speed: 0.70, nav_flag: "highway" }
+  highway_entry:  { maneuver: "HIGHWAY_ENTER",      speed: 0.40, nav_flag: "highway" }
+  highway_exit:   { maneuver: "HIGHWAY_EXIT",       speed: 0.20, nav_flag: "highway_exit" }
+  parking:        { maneuver: "PARK",               speed: 0.18, nav_flag: "parking" }
+  crosswalk:      { maneuver: "CROSSWALK_SLOW",     speed: 0.20, nav_flag: "crosswalk" }
+  roundabout:     { maneuver: "ROUNDABOUT_ENTER",   speed: 0.25, nav_flag: "roundabout" }
+  low_visibility: { maneuver: "LANE_KEEP_SLOW",     speed: 0.25, nav_flag: "low_visibility" }
+  tunnel:         { maneuver: "LANE_KEEP_GRAPH",    speed: 0.25, nav_flag: "tunnel" }
+  no_lane:        { maneuver: "GRAPH_ONLY",         speed: 0.20, nav_flag: "no_lane" }
+
+# Safe fallback when region is unknown (race-day: NEVER throws).
+unknown_region:   { maneuver: "LANE_KEEP",          speed: 0.25, nav_flag: "" }

@@ -1,0 +1,50 @@
+# =============================================================================
+# Competition semantics — region tag per mission node.
+# =============================================================================
+# Loaded by mission_semantics_node. The node at runtime keeps the vehicle's
+# nearest-mission-node and looks the region up here. Unlisted nodes default to
+# "normal". Used by mission_semantics to publish /planning/current_region,
+# /navigation/flags (string), and to drive the speed / behavior overrides.
+# =============================================================================
+
+regions:
+  # crosswalks — competition slow-zone, ped check
+  crosswalk:
+    nodes: ["253", "7", "164", "258"]
+
+  # roundabouts — both copies, north and south
+  roundabout:
+    nodes: ["331", "332", "333", "340", "341"]
+
+  # highway entries (sign / region transition)
+  highway_entry:
+    nodes: ["399", "422"]
+
+  # full highway extents (both safer branches)
+  highway:
+    node_ranges:
+      - [444, 462]
+      - [463, 482]
+    # also legal to enumerate individual nodes; ranges are inclusive on both ends.
+
+  # highway exit (deceleration zone)
+  highway_exit:
+    nodes: ["424"]
+
+  # low-visibility (shadow / canopy / shaded patch)
+  low_visibility:
+    nodes: ["127", "128", "129", "130"]
+
+  # tunnel — single node, full GPS+lane loss
+  tunnel:
+    nodes: ["151"]
+
+  # no-lane region — paint missing / construction segment
+  no_lane:
+    nodes: ["378", "379", "380", "381"]
+
+  # 3-way / 4-way intersections (mission-relevant only, NOT the full set)
+  intersection:
+    nodes: ["45", "4", "56"]
+
+default_region: "normal"

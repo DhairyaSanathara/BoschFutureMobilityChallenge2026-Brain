@@ -1,0 +1,296 @@
+# =============================================================================
+# Competition mission — explicit node sequence for race-day execution.
+# =============================================================================
+# This is the AUTHORITATIVE mission. mission_semantics_node loads it at
+# startup, validates each consecutive pair against the GraphML, and publishes
+# /planning/global_path as a nav_msgs/Path so the local planner + behavior
+# planner + NMPC see the same world.
+#
+# Branch decisions baked in:
+#   • First highway: 444-462 (safer branch) — NOT the barricade branch 483-501
+#   • Second highway: 463-482 (safer branch)
+#   • Skipped junctions: 425 (after 424), 436 (after 435), 96/103/104 (using
+#     102→105→97 detour), 44 (using 40→45→43)
+#
+# Total mission nodes: 230. Start: 263. Goal: 261.
+# =============================================================================
+
+mission:
+  name:        "BFMC 2026 — OdyssiX competition mission"
+  version:     "1.0"
+  start_node:  "263"
+  goal_node:   "261"
+  total_nodes: 230
+
+  # Ordered node sequence — branch choices already resolved. Mission supervisor
+  # walks this list in order; the local planner clips the lookahead to the next
+  # N nodes and the behavior planner uses region tags from competition_semantics.yaml.
+  path:
+    # ─── Section 1: warm-up ─────────────────────────────────────────────────
+    - "263"
+    - "264"
+    - "265"
+    - "266"
+    - "267"
+    - "268"
+    - "269"
+    - "270"
+    # ─── Section 2: town loop entry (242..257) ──────────────────────────────
+    - "242"
+    - "243"
+    - "244"
+    - "245"
+    - "246"
+    - "247"
+    - "248"
+    - "249"
+    - "250"
+    - "251"
+    - "252"
+    - "253"   # crosswalk
+    - "254"
+    - "255"
+    - "256"
+    - "257"
+    # ─── Section 3: intersection link ───────────────────────────────────────
+    - "54"
+    - "55"
+    # ─── Section 4: south-east loop (305..317) ──────────────────────────────
+    - "305"
+    - "306"
+    - "307"
+    - "308"
+    - "309"
+    - "310"
+    - "311"
+    - "312"
+    - "313"
+    - "314"
+    - "315"
+    - "316"
+    - "317"
+    # ─── Section 5: roundabout north (331..333) ─────────────────────────────
+    - "331"   # roundabout
+    - "332"   # roundabout
+    - "333"   # roundabout
+    # ─── Section 6: long east stretch (368..397) ────────────────────────────
+    - "368"
+    - "369"
+    - "370"
+    - "371"
+    - "372"
+    - "373"
+    - "374"
+    - "375"
+    - "376"
+    - "377"
+    - "378"   # no-lane
+    - "379"   # no-lane
+    - "380"   # no-lane
+    - "381"   # no-lane
+    - "382"
+    - "383"
+    - "384"
+    - "385"
+    - "386"
+    - "387"
+    - "388"
+    - "389"
+    - "390"
+    - "391"
+    - "392"
+    - "393"
+    - "394"
+    - "395"
+    - "396"
+    - "397"
+    # ─── Section 7: short bypass ────────────────────────────────────────────
+    - "337"
+    - "338"
+    # ─── Section 8: highway approach (398..400) ─────────────────────────────
+    - "398"
+    - "399"   # highway_entry
+    - "400"
+    # ─── Section 9: FIRST HIGHWAY — safer branch 444..462 ───────────────────
+    - "444"
+    - "445"
+    - "446"
+    - "447"
+    - "448"
+    - "449"
+    - "450"
+    - "451"
+    - "452"
+    - "453"
+    - "454"
+    - "455"
+    - "456"
+    - "457"
+    - "458"
+    - "459"
+    - "460"
+    - "461"
+    - "462"
+    # ─── Section 10: highway-exit + city resume (424,426..435) ──────────────
+    - "424"   # highway_exit
+    - "426"
+    - "427"
+    - "428"
+    - "429"
+    - "430"
+    - "431"
+    - "432"
+    - "433"
+    - "434"
+    - "435"
+    # ─── Section 11: bridge segment (437..443) ──────────────────────────────
+    - "437"
+    - "438"
+    - "439"
+    - "440"
+    - "441"
+    - "442"
+    - "443"
+    # ─── Section 12: north link ─────────────────────────────────────────────
+    - "85"
+    - "79"
+    # ─── Section 13: short bypass north (181..183) ──────────────────────────
+    - "181"
+    - "182"
+    - "183"
+    # ─── Section 14: junction step ──────────────────────────────────────────
+    - "93"
+    - "88"
+    # ─── Section 15: micro-loop (144..146) ──────────────────────────────────
+    - "144"
+    - "145"
+    - "146"
+    # ─── Section 16: detour around 96 / 103 / 104 ───────────────────────────
+    - "102"
+    - "105"
+    - "97"
+    # ─── Section 17: low-visibility corridor (122..130) ─────────────────────
+    - "122"
+    - "123"
+    - "124"
+    - "125"
+    - "126"
+    - "127"   # low_visibility
+    - "128"   # low_visibility
+    - "129"   # low_visibility
+    - "130"   # low_visibility
+    # ─── Section 18: stitch ─────────────────────────────────────────────────
+    - "75"
+    - "76"
+    - "70"
+    # ─── Section 19: north bypass (184..186) ────────────────────────────────
+    - "184"
+    - "185"
+    - "186"
+    # ─── Section 20: south-east descent (210..216) ──────────────────────────
+    - "210"
+    - "211"
+    - "212"
+    - "213"
+    - "214"
+    - "215"
+    - "216"
+    # ─── Section 21: intersection detour (40,45,43) ─────────────────────────
+    - "40"
+    - "45"    # intersection
+    - "43"
+    # ─── Section 22: bypass (217..219) ──────────────────────────────────────
+    - "217"
+    - "218"
+    - "219"
+    # ─── Section 23: intersection-with-crosswalk (4,90,7) ───────────────────
+    - "4"     # intersection
+    - "90"
+    - "7"     # crosswalk
+    # ─── Section 24: TUNNEL + east bypass (151..164) ────────────────────────
+    - "151"   # tunnel
+    - "152"
+    - "153"
+    - "154"
+    - "155"
+    - "156"
+    - "157"
+    - "158"
+    - "159"
+    - "160"
+    - "161"
+    - "162"
+    - "163"
+    - "164"   # crosswalk
+    # ─── Section 25: north stitch ───────────────────────────────────────────
+    - "82"
+    - "83"
+    # ─── Section 26: highway approach #2 (406..422) ─────────────────────────
+    - "406"
+    - "407"
+    - "408"
+    - "409"
+    - "410"
+    - "411"
+    - "412"
+    - "413"
+    - "414"
+    - "415"
+    - "416"
+    - "417"
+    - "418"
+    - "419"
+    - "420"
+    - "421"
+    - "422"   # highway_entry
+    # ─── Section 27: SECOND HIGHWAY — safer branch 463..482 ─────────────────
+    - "463"
+    - "464"
+    - "465"
+    - "466"
+    - "467"
+    - "468"
+    - "469"
+    - "470"
+    - "471"
+    - "472"
+    - "473"
+    - "474"
+    - "475"
+    - "476"
+    - "477"
+    - "478"
+    - "479"
+    - "480"
+    - "481"
+    - "482"
+    # ─── Section 28: highway exit ───────────────────────────────────────────
+    - "402"
+    - "403"
+    - "404"
+    - "405"
+    # ─── Section 29: roundabout south ───────────────────────────────────────
+    - "340"   # roundabout
+    - "341"   # roundabout
+    # ─── Section 30: south stretch (318..330) ───────────────────────────────
+    - "318"
+    - "319"
+    - "320"
+    - "321"
+    - "322"
+    - "323"
+    - "324"
+    - "325"
+    - "326"
+    - "327"
+    - "328"
+    - "329"
+    - "330"
+    # ─── Section 31: bypass ─────────────────────────────────────────────────
+    - "56"    # intersection
+    - "51"
+    # ─── Section 32: finish (258..261) ──────────────────────────────────────
+    - "258"   # crosswalk
+    - "259"
+    - "260"
+    - "261"

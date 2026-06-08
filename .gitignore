@@ -1,0 +1,52 @@
+# ROS 2 / colcon build artefacts
+build/
+install/
+log/
+.colcon/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+test_results/
+
+# Jetson temporary files
+*.log
+*.bag
+*.db
+*.db3
+
+# Generated runtime artefacts under planning/config/
+planning/config/mission_runtime_trace.csv
+planning/config/competition_semantics_inheritance_report.csv
+
+# TensorRT engines built on-device (not checked in)
+*.engine
+*.plan
+*.trt
+
+# Models built / downloaded on-device (not checked in)
+*.onnx
+*.pt
+*.pth
+
+# Private keys (precaution — none present in this tree)
+*.pem
+*.key
+
+# Editor temp
+*~

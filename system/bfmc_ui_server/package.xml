@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>bfmc_ui_server</name>
+  <version>0.1.0</version>
+  <description>
+    Race-day static-file HTTP server for the BFMC big-screen dashboard.
+    Serves the legacy Bosch React build (Bfmc_userinterface/dist/) plus a
+    companion dashboard.html that consumes /ui/status. Pure C++ / POSIX
+    sockets, no external deps. The browser then talks to rosbridge_server
+    on ws://&lt;host&gt;:9090 directly.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

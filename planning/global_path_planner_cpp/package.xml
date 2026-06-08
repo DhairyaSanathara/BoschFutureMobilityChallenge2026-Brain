@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>global_path_planner_cpp</name>
+  <version>1.0.0</version>
+  <description>
+    Global path planner for the BFMC autonomy stack. Loads the competition
+    GraphML map at startup (tinyxml2), builds an adjacency-list graph, and
+    serves a Dijkstra / A* path from the vehicle's nearest node to a
+    configurable goal node. Publishes nav_msgs/Path on /planning/global_path
+    plus a small bundle of /planning/debug/* diagnostics. Replans on
+    significant deviation (>0.4 m default) from the active path.
+    Pure C++; no GPU dependency; no modification to bfmc_msgs.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>bfmc_msgs</depend>
+  <depend>tinyxml2_vendor</depend>
+  <!-- libtinyxml2-dev system library: handled via find_library in CMakeLists. -->
+  <depend>libtinyxml2-dev</depend>
+  <!-- yaml-cpp side-car (zones.yaml). -->
+  <depend>yaml_cpp_vendor</depend>
+  <depend>yaml-cpp</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>local_path_planner_cpp</name>
+  <version>1.0.0</version>
+  <description>
+    C++ port of the Python local_path_planner — lane-follow + curvature speed
+    limit + decel-to-target + decel-to-stop + hold + overtake (sigmoid).
+    Phase B additions: /perception/tracked_objects collision check and
+    /planning/path_confidence output. Publishes /planning/local_path in the
+    same std_msgs/String JSON schema the Python version used so the existing
+    trajectory_generator consumes it without modification.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>bfmc_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

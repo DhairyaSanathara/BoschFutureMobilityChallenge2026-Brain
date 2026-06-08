@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mission_supervisor_cpp</name>
+  <version>0.1.0</version>
+  <description>
+    Competition mission supervisor — central semantic provider.
+    Loads competition_*.yaml + GraphML at startup; publishes /planning/global_path
+    (mission path, overriding A*), /planning/competition_path (visualization),
+    /planning/competition_markers (RViz), /navigation/flags (region tag),
+    /planning/current_node/region/behavior/speed_limit/mission_progress/
+    localization_confidence/mission_score_estimate.
+  </description>
+  <maintainer email="sambankar0303@gmail.com">Team OdyssiX</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>ament_index_cpp</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>bfmc_msgs</depend>
+  <depend>tinyxml2_vendor</depend>
+  <depend>yaml_cpp_vendor</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

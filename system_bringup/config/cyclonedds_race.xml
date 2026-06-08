@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Race-day CycloneDDS profile.
+    * Pinned to the WiFi interface so we don't leak discovery onto docker0
+      or l4tbr0. Replace `wlP1p1s0` if the NIC name changes at the track:
+        ip -o -4 a | grep -v 127. | grep -v docker | awk '{print $2}'
+    * MaxAutoParticipantIndex=100 — the BFMC stack runs ~26 ROS2 nodes plus
+      ros2-daemon plus the launch process. Default 9 is way too low and
+      causes "Failed to find a free participant index" SIGABRTs.
+    * Multicast OFF except for SPDP discovery — track APs usually permit
+      local multicast in the 239.x range; SEDP + data go unicast.
+    * No internet dependency — DDS is purely LAN-local.
+-->
+<CycloneDDS xmlns="https://cdds.io/config"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://cdds.io/config
+                                https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+  <Domain Id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface name="wlP1p1s0" priority="default"/>
+      </Interfaces>
+      <AllowMulticast>spdp</AllowMulticast>
+      <MaxMessageSize>65500B</MaxMessageSize>
+      <DontRoute>true</DontRoute>
+    </General>
+    <Discovery>
+      <ParticipantIndex>auto</ParticipantIndex>
+      <MaxAutoParticipantIndex>100</MaxAutoParticipantIndex>
+    </Discovery>
+    <Internal>
+      <SocketReceiveBufferSize min="2MiB"/>
+      <SocketSendBufferSize min="2MiB"/>
+    </Internal>
+  </Domain>
+</CycloneDDS>

@@ -1,0 +1,56 @@
+# ============================================================================
+# BFMC 2026 — Object Detection Configuration (C++ port)
+# Team OdyssiX — Perception Layer
+# Target: Jetson Orin Nano / TensorRT 10 FP16 / YOLOv8n
+# ============================================================================
+
+model:
+  # MUST be set by the operator. Two options:
+  #   (a) Replace the empty string below with the absolute path to your
+  #       built TensorRT engine.
+  #   (b) Leave this empty and pass `-p engine_path:=/abs/path/to/engine.engine`
+  #       to object_detection_node (e.g., from a launch file).
+  # The node throws a clear error at startup if engine_path is still empty.
+  engine_path: ""
+  input_width: 640
+  input_height: 640
+
+runtime:
+  publish_rate: 30          # match camera (drives the watchdog only — pipeline is callback-driven)
+  warmup_runs: 10
+  max_log_rate_hz: 1.0
+  watchdog_timeout_s: 0.5
+
+thresholds:
+  # Race-day: bumped 0.45 → 0.60. At 0.45 the detector held persistent
+  # false-positive "parking"/"car" tracks on cluttered bench scenes,
+  # confirming the DetectionTimer and locking the FSM into PARK/FOLLOW.
+  # 0.60 still catches real signs at 1-2 m on the BFMC track while
+  # rejecting most wall-texture / poster ghosts.
+  conf: 0.60
+  nms: 0.45
+
+# ============================================================================
+# IMPORTANT: CLASS ORDER MUST MATCH TRAINING ORDER
+# dataset.yaml -> training -> ONNX -> TRT -> runtime MUST MATCH
+# ============================================================================
+classes:
+  - car
+  - crosswalk
+  - highway_entry
+  - highway_exit
+  - no_entry
+  - onewayroad
+  - parking
+  - pedestrian
+  - priority
+  - roadblock
+  - roundabout
+  - stop
+  - trafficlight
+
+topics:
+  subscribe: /camera/camera/color/image_raw
+  publish:   /perception/objects
+  depth:     /camera/camera/depth/image_rect_raw
+  camera_info: /camera/camera/color/camera_info
