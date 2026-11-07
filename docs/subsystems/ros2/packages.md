@@ -67,7 +67,7 @@ External (apt-installed) ROS packages used at launch time: `nav2_lifecycle_manag
 |---|---|
 | Purpose | Subscribe to micro-ROS IMU raw, republish filtered IMU. |
 | Publishes | `/imu/data_filtered` |
-| Subscribes | `/microros/imu_raw_hardware` (remapped from `/microros/imu_raw` in docker-compose) |
+| Subscribes | `/microros/imu_raw` (`imu_driver_node.hpp:40`) |
 | Dependencies | `rclcpp`, `sensor_msgs` |
 
 ### `clock_sync_node` (built but not deployed)
@@ -83,8 +83,8 @@ External (apt-installed) ROS packages used at launch time: `nav2_lifecycle_manag
 | Field | Value |
 |---|---|
 | Purpose | Front ultrasonic driver. Not referenced in any launch. |
-| Publishes | `/ultrasonic/front` (presumed by node name; source declares the topic literal) |
-| Subscribes | `/microros/ultrasonic_front_hardware` |
+| Publishes | `/ultrasonic/front` (`ultrasonic_front_driver_node.hpp:46`) |
+| Subscribes | `/microros/ultrasonic_front` (`ultrasonic_front_driver_node.hpp:47`). The current firmware does not publish this topic. |
 | Status | EXPERIMENTAL / non-deployed |
 
 ### `drift_estimator` (lifecycle)

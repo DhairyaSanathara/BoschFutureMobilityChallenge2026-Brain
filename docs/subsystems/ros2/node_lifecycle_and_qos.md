@@ -83,14 +83,14 @@ Observations from `create_publisher<...>` / `create_subscription<...>` arguments
 | Emergency / state topics (`/safety/*`, `/system/*`) | Latched-style: `TransientLocal` durability on the state machine output. |
 | UI status (`/ui/status`) | Default Reliable, KeepLast. Bridged to rosbridge for the browser. |
 | TF (`/tf`) | TF default (Reliable KeepLast). |
-| Micro-ROS topics (`/microros/imu_raw_hardware`, `/microros/ultrasonic_front_hardware`) | Reliable (defaults). Upstream micro-ROS Agent maps DDS to RTPS over UART. |
+| Micro-ROS topic (`/microros/imu_raw`) | Reliable (defaults). Upstream micro-ROS Agent maps DDS to RTPS over UART. |
 
 Explicit QoS profile constructions vary per node; the spec deliberately does not enumerate every QoS depth here because it is read off literal declarations and not a unified policy document.
 
 ## Topic-name conventions
 
 - `/camera/camera/*` — RealSense double-namespace (from `rs_launch.py` default).
-- `/microros/*_hardware` — STM32 stream after the docker compose remap (UART side keeps `/microros/imu_raw` etc.; the host side sees `_hardware` suffix).
+- `/microros/*` — STM32 stream via the micro-ROS agent (`/microros/imu_raw`). The `_hardware` remap arguments in docker-compose do not change the name the Brain subscribes to; see `docs/subsystems/docker/docker_audit.md`.
 - `/perception/*` — perception layer output.
 - `/planning/*` — planner layer output. Sub-namespace `/planning/debug/*` for development topics.
 - `/control/*` — control output. Sub-namespace `/control/debug/*` for development.
@@ -149,7 +149,7 @@ camera/depth/image_rect_raw ─────────────────�
                                             behavior_planner ──▶ /planning/target_speed ──▶ trajectory_controller
                                             safety_supervisor ──▶ /control/command ──▶ micro_ros_agent ──▶ STM32
 
-   STM32 ──▶ micro_ros_agent ──▶ /microros/imu_raw_hardware ──▶ imu_driver ──▶ /imu/data_filtered ──▶ ekf_localization
+   STM32 ──▶ micro_ros_agent ──▶ /microros/imu_raw ───────────▶ imu_driver ──▶ /imu/data_filtered ──▶ ekf_localization
                                                                                                        ──▶ drift_estimator
                                                                                                        ──▶ vehicle_state ──▶ /vehicle/state ──▶ tf2_publisher
                                                                                                                                                    ──▶ behavior_planner

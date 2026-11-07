@@ -28,13 +28,13 @@ Operator UI (browser)
         │                              ▲
         ▼                              │
    /control/command (ROS 2 topic)      /microros/imu_raw
-        │                              /microros/ultrasonic_front
+        │                              │
         ▼                              │
    micro_ros_agent (XRCE-DDS over UART)
         │                              ▲
         ▼ (460800 baud)                │
    STM32F401RE (vehicle firmware)
-   PWM steering + ESC                  BNO085 IMU + ultrasonic
+   PWM steering + ESC                  BNO085 IMU
 ```
 
 ## Platform
@@ -58,7 +58,7 @@ The deployed (race-day) launch is `system_bringup/launch/race_day.launch.py`. It
 
 | Package | Executable | Role |
 |---|---|---|
-| `imu_driver` | `imu_driver_node` | Consumes `/microros/imu_raw_hardware` (remapped by docker) and republishes filtered IMU. |
+| `imu_driver` | `imu_driver_node` | Consumes `/microros/imu_raw` and republishes it on `/imu/data_filtered`. |
 | `ekf_localization` | `localization_client_node` | TCP client for an external localization server. Configured with `server_host=''`, `server_port=0` → effectively disabled in race_day. |
 | `runtime_telemetry_cpp` | `runtime_telemetry_node` | Reads `/proc/stat`, `/proc/meminfo`, `/sys/class/thermal/*/temp` and publishes `/system/runtime_health`. |
 
@@ -148,8 +148,7 @@ Topics are extracted from `create_publisher<...>` / `create_subscription<...>` l
 ### Hardware → drivers (UART via micro-ROS)
 
 ```
-STM32 ──UART 460800──▶ micro_ros_agent ──/microros/imu_raw──▶ (remap) /microros/imu_raw_hardware ──▶ imu_driver_node
-                                       ──/microros/ultrasonic_front──▶ (remap) /microros/ultrasonic_front_hardware
+STM32 ──UART 460800──▶ micro_ros_agent ──/microros/imu_raw──▶ imu_driver_node
 imu_driver_node ──/imu/data_filtered──▶ ekf_localization_node
 ```
 

@@ -123,14 +123,14 @@ ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyACM0 -b 460800 --r
 
 ### Topic remaps
 
-The micro-ROS agent remaps the topics published by the STM32 firmware:
+The agent command passes two `--remap` arguments: `/microros/imu_raw` → `/microros/imu_raw_hardware` and `/microros/ultrasonic_front` → `/microros/ultrasonic_front_hardware`. Neither changes what the autonomy stack uses:
 
-| STM32 publishes | After remap (host sees) |
-|---|---|
-| `/microros/imu_raw` | `/microros/imu_raw_hardware` |
-| `/microros/ultrasonic_front` | `/microros/ultrasonic_front_hardware` |
+| STM32 publishes | Brain subscribes to | Evidence |
+|---|---|---|
+| `/microros/imu_raw` | `/microros/imu_raw` | `drivers/imu_driver/include/imu_driver/imu_driver_node.hpp:40`; `tools/check_run.sh` measures the IMU rate on the same name. |
+| (nothing) | `/microros/ultrasonic_front` (`ultrasonic_front_driver`, not launched) | The current STM32 firmware has one publisher, `/microros/imu_raw`. |
 
-This `_hardware` suffix lets the autonomy stack discriminate real-vehicle traffic from any simulation / replay traffic that uses the unsuffixed topics.
+The deployed `imu_driver_node` receives the STM32 stream on the unsuffixed name, so use `/microros/imu_raw` when inspecting it on the Jetson (`ros2 topic hz /microros/imu_raw`).
 
 ## Realsense params
 

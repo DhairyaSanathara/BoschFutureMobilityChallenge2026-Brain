@@ -43,16 +43,17 @@ The 460 800 baud rate is matched on both sides:
 
 ## Topics across the bridge
 
-The STM32 firmware publishes IMU and ultrasonic data; the Brain subscribes via the agent. The Brain publishes control commands; the STM32 firmware subscribes via the agent.
+The STM32 firmware publishes IMU data; the Brain subscribes via the agent. The Brain publishes control commands; the STM32 firmware subscribes via the agent.
 
 ### STM32 → Brain (sensor stream)
 
-| STM32 publishes | After agent remap | Brain subscriber |
-|---|---|---|
-| `/microros/imu_raw` | `/microros/imu_raw_hardware` | `imu_driver_node` |
-| `/microros/ultrasonic_front` | `/microros/ultrasonic_front_hardware` | `ultrasonic_front_driver` (built but not deployed) |
+| STM32 publishes | Brain subscriber |
+|---|---|
+| `/microros/imu_raw` | `imu_driver_node` (`imu_driver_node.hpp:40`) |
 
-The remap is applied by the agent via `--ros-args --remap` in the docker-compose command. The suffix `_hardware` lets the autonomy stack distinguish real-vehicle data from any simulation or replay traffic that might publish on the un-suffixed name.
+The docker-compose agent command also passes `--remap` arguments to `_hardware`-suffixed names, but the deployed subscriber uses the unsuffixed `/microros/imu_raw`, as does `tools/check_run.sh`. See `docs/subsystems/docker/docker_audit.md`.
+
+The firmware has no ultrasonic publisher. `ultrasonic_front_driver` (built but not deployed) subscribes to `/microros/ultrasonic_front`, which nothing currently publishes.
 
 ### Brain → STM32 (actuator command)
 
@@ -99,7 +100,7 @@ A `while` loop polls for `/dev/ttyACM0` before launching the agent. The containe
 | Session establish | Brain-side agent waits on UART; STM32 client connects, registers publishers / subscribers. |
 | Steady state | STM32 polls BNO085 at 1 kHz cadence (10 Hz publish), reads UART RX ring for inbound control commands, writes PWM. `rmw_uros_sync_session` every 10 s for time discipline. |
 | Loss of agent | Brain side: agent process dies → DDS topic disappears. STM32 side: session lost → next `rclc_executor_spin_some` recovers via auto-recovery on 50 errors, then re-establishes. |
-| Loss of STM32 | Brain side: agent loses session; on Jetson, `imu_driver_node` stops receiving on `/microros/imu_raw_hardware`. EKF starts emitting stale data. After 0.5 s (`stale_state_max_s`) drift estimator skips ticks. After more time, the system state machine drops READY. |
+| Loss of STM32 | Brain side: agent loses session; on Jetson, `imu_driver_node` stops receiving on `/microros/imu_raw`. EKF starts emitting stale data. After 0.5 s (`stale_state_max_s`) drift estimator skips ticks. After more time, the system state machine drops READY. |
 | Deadman | STM32 firmware applies a 500 ms command-silence deadman: if no `/control/command` reaches the STM32 in 500 ms, the firmware writes neutral PWM (1500 µs) until commands resume. |
 
 ## Failure modes
@@ -123,4 +124,4 @@ A `while` loop polls for `/dev/ttyACM0` before launching the agent. The containe
 
 - Wire-protocol throughput is **not measured** in this repo. The 460 800 baud rate is sufficient by design but no benchmark trace is included.
 - Session-recovery time after STM32 reset is **not measured** — it is whatever `rmw_microxrcedds` + the agent negotiate.
-- The `ultrasonic_front` topic is plumbed end-to-end (firmware publishes it, agent remaps it), but the deployed race-day launch does not run the `ultrasonic_front_driver` node — so the topic exists on the bus and is not consumed.
+- The ultrasonic path is not live. The current firmware has no `/microros/ultrasonic_front` publisher (its only publisher is `/microros/imu_raw`), and the deployed race-day launch does not run `ultrasonic_front_driver`.

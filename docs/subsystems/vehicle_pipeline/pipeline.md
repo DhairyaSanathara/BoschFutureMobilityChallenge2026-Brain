@@ -49,7 +49,7 @@ lane_geometry  free_space (10 Hz cap)        object_detection (8 Hz cap)
 Two side flows feed the pipeline:
 
 ```
-STM32 ──UART──▶ micro_ros_agent ──/microros/imu_raw_hardware──▶ imu_driver_node
+STM32 ──UART──▶ micro_ros_agent ──/microros/imu_raw───────────▶ imu_driver_node
                                                                   │ /imu/data_filtered
                                                                   ▼
                                                        ekf_localization_node (lifecycle)
@@ -88,8 +88,8 @@ lane_geometry ──▶ drift_estimator ──/fusion/yaw_bias_correction──�
 |---|---|---|---|
 | RealSense D435i color | `/camera/camera/color/image_raw` | 15 Hz | Set in `docker/realsense_params.yaml`. |
 | RealSense D435i depth | `/camera/camera/depth/image_rect_raw` | 15 Hz | Same. |
-| BNO085 (via STM32) | `/microros/imu_raw_hardware` | ~100 Hz batched | STM32 polls IMU @ 1 kHz, batches publish ~10 Hz cadence per packet (10–20 messages per second observed). |
-| Ultrasonic front (via STM32) | `/microros/ultrasonic_front_hardware` | (publishing; not consumed in race-day) | Driver not in any launch. |
+| BNO085 (via STM32) | `/microros/imu_raw` | ~100 Hz batched | STM32 polls IMU @ 1 kHz, batches publish ~10 Hz cadence per packet (10–20 messages per second observed). |
+| Ultrasonic front (via STM32) | `/microros/ultrasonic_front` | Not published | Current firmware has no ultrasonic publisher; `ultrasonic_front_driver` is not in any launch. |
 
 ### Stage 2 — Preprocess + perception
 

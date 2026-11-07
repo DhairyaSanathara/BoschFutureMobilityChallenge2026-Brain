@@ -131,7 +131,7 @@ With the deployed launch running, open in a browser:
 
 The vehicle firmware lives in `BoschFutureMobilityChallenge2026-Embedded`. Topics across the bridge:
 
-- STM32 → Brain: `/microros/imu_raw` (remapped to `/microros/imu_raw_hardware` by the agent), `/microros/ultrasonic_front`.
+- STM32 → Brain: `/microros/imu_raw` (`sensor_msgs/Imu`, consumed by `imu_driver_node`). This is the firmware's only publisher.
 - Brain → STM32: `/control/command` (`bfmc_msgs/ControlCommand`).
 
 The firmware applies a 500 ms command-silence deadman: if `/control/command` stops arriving, the STM32 returns the steering servo and ESC to neutral PWM within 500 ms.
