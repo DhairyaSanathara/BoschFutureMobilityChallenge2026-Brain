@@ -21,6 +21,7 @@ from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessStart
 from launch_ros.actions import Node, LifecycleNode, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 
@@ -34,6 +35,9 @@ _dds_xml = os.path.join(
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    # TensorRT engine for object_detection_node. Empty = use model.engine_path
+    # from object_detection.yaml.
+    engine_path = LaunchConfiguration('engine_path', default='')
     enable_runtime_validation = LaunchConfiguration(
         'enable_runtime_validation', default='false')
 
@@ -118,6 +122,7 @@ def generate_launch_description():
             'use_sim_time':      use_sim_time,
             'min_period_s':      0.125,
             'stale_threshold_s': 0.50,
+            'engine_path':       ParameterValue(engine_path, value_type=str),
         }])
 
     obj_tracker = Node(
@@ -443,6 +448,9 @@ def generate_launch_description():
         SetEnvironmentVariable('ROS_DOMAIN_ID', '42'),
 
         DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('engine_path', default_value='',
+            description='Absolute path to the TensorRT engine for object_detection_node. '
+                        'Empty keeps model.engine_path from object_detection.yaml.'),
         DeclareLaunchArgument('enable_runtime_validation', default_value='false'),
 
         # Drivers

@@ -39,6 +39,7 @@ from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessStart
 from launch_ros.actions import Node, LifecycleNode, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+from launch_ros.parameter_descriptions import ParameterValue
 from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
@@ -61,6 +62,9 @@ def generate_launch_description():
 
     # CRITICAL: Must be false for physical hardware!
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    # TensorRT engine for object_detection_node. Empty = use model.engine_path
+    # from object_detection.yaml.
+    engine_path = LaunchConfiguration('engine_path', default='')
 
     # Optional runtime-validation layer. When 'true':
     #   • health_monitor_node starts and publishes /system/health/{status,metrics}
@@ -165,7 +169,10 @@ def generate_launch_description():
     obj_det = Node(
         package='object_detection_cpp', executable='object_detection_node',
         name='object_detection_node', output='screen', emulate_tty=True,
-        parameters=[{'use_sim_time': use_sim_time}]
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'engine_path':  ParameterValue(engine_path, value_type=str),
+        }]
     )
 
     # ByteTrack adapted for 3D vehicle-frame positions. Subscribes
@@ -447,6 +454,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('engine_path', default_value='',
+            description='Absolute path to the TensorRT engine for object_detection_node. '
+                        'Empty keeps model.engine_path from object_detection.yaml.'),
         DeclareLaunchArgument('enable_runtime_validation', default_value='false',
             description='Start health_monitor_node and enable drift_estimator debug topics.'),
         DeclareLaunchArgument('validation_output_dir',

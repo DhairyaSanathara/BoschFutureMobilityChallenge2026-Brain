@@ -91,7 +91,13 @@ ros2 launch system_bringup race_day.launch.py
 `object_detection_node` requires a TensorRT engine file that the operator builds on-device from an ONNX model. The path is **not** baked into the repository. Supply it one of two ways:
 
 1. Edit `perception/object_detection_cpp/config/object_detection.yaml` and set `model.engine_path:` to your absolute path; or
-2. Pass `-p engine_path:=/abs/path/to/yolov8n_fp16.engine` to `object_detection_node` (e.g., from your launch file).
+2. Pass it as a launch argument, which every launch file that starts `object_detection_node` accepts:
+
+   ```bash
+   ros2 launch system_bringup race_day.launch.py engine_path:=/abs/path/to/yolov8n_fp16.engine
+   ```
+
+   When running the node on its own, use `--ros-args -p engine_path:=/abs/path/to/yolov8n_fp16.engine`.
 
 If `engine_path` is left empty, `object_detection_node` throws a clear startup error.
 

@@ -8,8 +8,9 @@ model:
   # MUST be set by the operator. Two options:
   #   (a) Replace the empty string below with the absolute path to your
   #       built TensorRT engine.
-  #   (b) Leave this empty and pass `-p engine_path:=/abs/path/to/engine.engine`
-  #       to object_detection_node (e.g., from a launch file).
+  #   (b) Leave this empty and pass `engine_path:=/abs/path/to/engine.engine`
+  #       as a launch argument (race_day, hil_bringup, lane_follow,
+  #       manual_drive), or `-p engine_path:=...` when running the node alone.
   # The node throws a clear error at startup if engine_path is still empty.
   engine_path: ""
   input_width: 640
