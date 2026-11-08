@@ -98,7 +98,7 @@ A `while` loop polls for `/dev/ttyACM0` before launching the agent. The containe
 |---|---|
 | Boot | STM32 firmware initialises peripherals, starts FreeRTOS, the `microROSTask` brings up the BNO085, configures the micro-ROS transport, allocator, entities. |
 | Session establish | Brain-side agent waits on UART; STM32 client connects, registers publishers / subscribers. |
-| Steady state | STM32 polls BNO085 at 1 kHz cadence (10 Hz publish), reads UART RX ring for inbound control commands, writes PWM. `rmw_uros_sync_session` every 10 s for time discipline. |
+| Steady state | STM32 main loop runs at ~1 kHz (`osDelay(1)`). It publishes IMU at the BNO085 report rate, 100 Hz (10 000 µs report interval), reads UART RX ring for inbound control commands, writes PWM. `rmw_uros_sync_session` every ~1 s (1000 loop iterations) for time discipline. |
 | Loss of agent | Brain side: agent process dies → DDS topic disappears. STM32 side: session lost → next `rclc_executor_spin_some` recovers via auto-recovery on 50 errors, then re-establishes. |
 | Loss of STM32 | Brain side: agent loses session; on Jetson, `imu_driver_node` stops receiving on `/microros/imu_raw`. EKF starts emitting stale data. After 0.5 s (`stale_state_max_s`) drift estimator skips ticks. After more time, the system state machine drops READY. |
 | Deadman | STM32 firmware applies a 500 ms command-silence deadman: if no `/control/command` reaches the STM32 in 500 ms, the firmware writes neutral PWM (1500 µs) until commands resume. |
